@@ -22,7 +22,6 @@ COPY . .
 
 # Build NestJS et compiler start.ts en JS
 RUN npm run build
-RUN npx tsc scripts/start.ts --outDir dist
 
 # =========================
 # Étape 2 : Runtime
@@ -44,6 +43,6 @@ COPY --from=builder /usr/src/app/package*.json ./
 
 ENV NODE_ENV=staging
 EXPOSE 4000
-
-# Lancer le script start.js compilé
-CMD ["node", "dist/start.js"]
+# À la fin de votre Dockerfile
+# On enchaîne : Migration -> Seed -> Start
+CMD npx prisma migrate deploy && npx prisma db seed && node dist/main.js

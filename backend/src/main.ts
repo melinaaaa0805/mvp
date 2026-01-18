@@ -30,7 +30,7 @@ export async function bootstrap(port?: number) {
 
   // Port : Render fournit process.env.PORT
   const listenPort = port ?? process.env.PORT ?? 4000;
-  await app.listen(listenPort);
+  await app.listen(listenPort, '0.0.0.0');
   console.log(`🚀 Server listening on port ${listenPort}`);
 }
 
