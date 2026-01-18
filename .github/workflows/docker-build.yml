@@ -1,0 +1,83 @@
+name: ci-compose-and-tests
+
+on:
+  push:
+    branches: ["ci"]
+
+jobs:
+  compose-and-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env.local for docker-compose
+        shell: bash
+        run: |
+          cat > .env.local << 'EOF'
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }}
+          NODE_ENV=${{ vars.NODE_ENV }}
+          CORS_ORIGIN=${{ vars.CORS_ORIGIN }}
+          REACT_APP_API_BASE_URL=${{ vars.REACT_APP_API_BASE_URL }}
+          EOF
+
+      - name: Docker info
+        run: |
+          docker version
+          docker compose version
+
+      # Build tout (docker-compose.yml est à la racine) :contentReference[oaicite:1]{index=1}
+      - name: Build images
+        run: docker compose build
+
+      # Démarre au moins Postgres (healthcheck défini) :contentReference[oaicite:2]{index=2}
+      - name: Start postgres
+        run: docker compose up -d postgres
+
+      - name: Show compose status
+        run: docker compose ps
+
+      - name: Tests (backend + frontend in parallel, via Node containers)
+        shell: bash
+        run: |
+          set -e
+
+          echo "Launching backend + frontend tests in parallel..."
+
+          # Backend tests (jest) :contentReference[oaicite:3]{index=3}
+          (
+            docker run --rm \
+              --network mvp_default \
+              --env-file .env.local \
+              -v "${PWD}/backend:/usr/src/app" \
+              -w /usr/src/app \
+              node:18-bullseye \
+              bash -lc "npm ci && npx prisma generate && npm test"
+          ) &
+          BACK_PID=$!
+
+          # Frontend tests (react-scripts test) :contentReference[oaicite:4]{index=4}
+          (
+            docker run --rm \
+              --network mvp_default \
+              --env-file .env.local \
+              -v "${PWD}/frontend:/usr/src/app" \
+              -w /usr/src/app \
+              node:18-bullseye \
+              bash -lc "npm ci && CI=true npm test -- --watchAll=false"
+          ) &
+          FRONT_PID=$!
+
+          wait ${BACK_PID}
+          wait ${FRONT_PID}
+
+      - name: Logs
+        if: always()
+        run: docker compose logs --no-color || true
+
+      - name: Down
+        if: always()
+        run: docker compose down -v || true
