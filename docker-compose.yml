@@ -18,6 +18,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
   backend:
     build:
       context: ./backend
@@ -25,7 +26,7 @@ services:
       target: builder
     container_name: mvp-backend
     env_file:
-      - .env
+      - .env.local
     ports:
       - "4000:4000"
     depends_on:
@@ -34,7 +35,7 @@ services:
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
-    command: sh -c "npm run start:dev"
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run start:dev"
 
   frontend:
     build: ./frontend
@@ -42,7 +43,7 @@ services:
     ports:
       - "3000:80"
     env_file:
-      - .env
+      - .env.local
     depends_on:
       - backend
 

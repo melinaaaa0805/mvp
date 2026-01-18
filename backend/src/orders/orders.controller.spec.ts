@@ -1,20 +1,35 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
+import { PrismaService } from '../prisma/prisma.service';
 
-describe('OrdersController', () => {
-  let controller: OrdersController;
+describe('OrdersService', () => {
+  let service: OrdersService;
+
+  const prismaMock = {
+    order: {
+      findMany: jest.fn(),
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+  } as unknown as PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [OrdersController],
-      providers: [OrdersService],
+      providers: [
+        OrdersService,
+        {
+          provide: PrismaService,
+          useValue: prismaMock,
+        },
+      ],
     }).compile();
 
-    controller = module.get<OrdersController>(OrdersController);
+    service = module.get<OrdersService>(OrdersService);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(service).toBeDefined();
   });
 });

@@ -1,6 +1,5 @@
 import { PrismaClient, Role, OrderStatus } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
-
+import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -8,7 +7,7 @@ async function main() {
   console.log(`Seeding ${isProduction ? 'production' : 'staging'} database...`);
 
   if (!isProduction) {
-    // ===== STAGING =====
+    console.log('Seeding staging/local database...');
     const adminPassword = await bcrypt.hash('admin123', 10);
     const userPassword = await bcrypt.hash('user123', 10);
 
@@ -53,7 +52,8 @@ async function main() {
       ],
     });
   } else {
-    // ===== PRODUCTION =====
+    console.log('Seeding production database...');
+
     const prodPassword = await bcrypt.hash('prod123', 10);
     await prisma.user.create({
       data: {
