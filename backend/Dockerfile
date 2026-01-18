@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y openssl ca-certificates
 COPY package*.json ./
 
 # 2. Copier le dossier prisma (depuis backend/prisma vers ./prisma dans l'image)
-COPY backend/prisma ./prisma 
+COPY /prisma ./prisma 
 
 # 3. Installation et génération
 RUN npm ci
@@ -18,7 +18,7 @@ RUN npm ci
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
 # 4. Copier le reste du code du dossier backend
-COPY backend/ .
+COPY . .
 
 # 5. Build NestJS
 RUN npm run build
