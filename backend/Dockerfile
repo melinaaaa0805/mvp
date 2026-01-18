@@ -14,7 +14,7 @@ COPY package*.json ./
 COPY prisma ./prisma
 
 RUN npm ci
-RUN npx prisma generate
+CMD sh -c "npx prisma generate && npx prisma migrate deploy && npx prisma db seed && node dist/main.js"
 
 
 COPY . .
