@@ -10,16 +10,22 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   async login(email: string, password: string) {
+    if (!this.isValidEmail(email)) {
+      throw new UnauthorizedException('Invalid email format');
+    }
+
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const passwordValid = await bcrypt.compare(password, user.password);
-
-    //Faire control validitée email ( genre @ )
-
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }

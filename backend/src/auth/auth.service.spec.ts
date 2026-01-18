@@ -43,12 +43,21 @@ describe('AuthService', () => {
     expect(service).toBeDefined();
   });
 
+  it('should throw UnauthorizedException when email format is invalid', async () => {
+    await expect(
+      service.login('invalid-email-format', 'password123'),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+
+    // optionnel : vérifier qu’on ne va même pas taper la BDD
+    expect(usersService.findByEmail).not.toHaveBeenCalled();
+  });
+
   it('should throw UnauthorizedException when user is not found', async () => {
     usersService.findByEmail.mockResolvedValue(null);
 
-    await expect(service.login('test@example.com', 'password123')).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    await expect(
+      service.login('test@example.com', 'password123'),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('should throw UnauthorizedException when password is invalid', async () => {
@@ -61,9 +70,9 @@ describe('AuthService', () => {
 
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-    await expect(service.login('test@example.com', 'wrongPassword')).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    await expect(
+      service.login('test@example.com', 'wrongPassword'),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('should return a JWT token and user info when credentials are valid', async () => {
