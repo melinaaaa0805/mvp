@@ -1,0 +1,21 @@
+# docker-compose.dev.yml
+services:
+  backend:
+    build:
+      context: ./backend
+      target: builder # On reste sur l'étape avec tous les outils
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    # On écrase la commande pour le mode dev
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run start:dev"
+
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000" # Port classique de dev
+    command: npm run dev
