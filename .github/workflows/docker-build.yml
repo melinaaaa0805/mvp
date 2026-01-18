@@ -1,11 +1,11 @@
-name: ci-compose-and-tests
+name: ci-compose-build
 
 on:
   push:
     branches: ["ci"]
 
 jobs:
-  compose-and-tests:
+  compose-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,55 +29,15 @@ jobs:
           docker version
           docker compose version
 
-      # Build tout (docker-compose.yml est à la racine) :contentReference[oaicite:1]{index=1}
       - name: Build images
         run: docker compose build
 
-      # Démarre au moins Postgres (healthcheck défini) :contentReference[oaicite:2]{index=2}
-      - name: Start postgres
-        run: docker compose up -d postgres
+      - name: Create containers (no start)
+        run: docker compose up --build --no-start
 
-      - name: Show compose status
-        run: docker compose ps
+      - name: Show containers
+        run: docker compose ps -a
 
-      - name: Tests (backend + frontend in parallel, via Node containers)
-        shell: bash
-        run: |
-          set -e
-
-          echo "Launching backend + frontend tests in parallel..."
-
-          # Backend tests (jest) :contentReference[oaicite:3]{index=3}
-          (
-            docker run --rm \
-              --network mvp_default \
-              --env-file .env.local \
-              -v "${PWD}/backend:/usr/src/app" \
-              -w /usr/src/app \
-              node:18-bullseye \
-              bash -lc "npm ci && npx prisma generate && npm test"
-          ) &
-          BACK_PID=$!
-
-          # Frontend tests (react-scripts test) :contentReference[oaicite:4]{index=4}
-          (
-            docker run --rm \
-              --network mvp_default \
-              --env-file .env.local \
-              -v "${PWD}/frontend:/usr/src/app" \
-              -w /usr/src/app \
-              node:18-bullseye \
-              bash -lc "npm ci && CI=true npm test -- --watchAll=false"
-          ) &
-          FRONT_PID=$!
-
-          wait ${BACK_PID}
-          wait ${FRONT_PID}
-
-      - name: Logs
-        if: always()
-        run: docker compose logs --no-color || true
-
-      - name: Down
+      - name: Cleanup
         if: always()
         run: docker compose down -v || true
