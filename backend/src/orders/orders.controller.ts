@@ -1,34 +1,54 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+// src/orders/orders.controller.ts
+import {
+  Controller,
+  Get,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Req,
+  UseGuards,
+  Post,
+} from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { UpdateOrderAdminDto } from './dto/update-order-admin.dto';
 
 @Controller('orders')
+@UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
-  }
-
+  // =======================
+  // USER
+  // =======================
   @Get()
-  findAll() {
-    return this.ordersService.findAll();
+  getMyOrders(@Req() req) {
+    return this.ordersService.getOrdersByUser(req.user.userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
+  // =======================
+  // ADMIN
+  // =======================
+  @Get('admin')
+  getAllOrders() {
+    return this.ordersService.getAllOrders();
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
+  updateOrderAdmin(
+    @Param('id') idOrder: string,
+    @Body() body: UpdateOrderAdminDto,
+  ) {
+    return this.ordersService.updateOrder(idOrder, body);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
+  deleteOrderAdmin(@Param('id') id: string) {
+    return this.ordersService.deleteOrder(id);
+  }
+  @Post()
+  createOrder(@Req() req, @Body() body) {
+    return this.ordersService.createOrder(req.user.userId, body);
   }
 }

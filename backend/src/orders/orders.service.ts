@@ -1,26 +1,62 @@
-import { Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+// src/orders/orders.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(private prisma: PrismaService) {}
+
+  // USER
+  async getOrdersByUser(userId: string) {
+    return await this.prisma.order.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+  async createOrder(userId: string, data: { title: string; amount: number }) {
+    return await this.prisma.order.create({
+      data: {
+        title: data.title,
+        amount: data.amount,
+        status: OrderStatus.PENDING,
+        user: {
+          connect: { id: userId },
+        },
+      },
+    });
+  }
+  async updateOrder(
+    orderId: string,
+    data: { title?: string; amount?: number },
+  ) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) throw new NotFoundException();
+
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data,
+    });
   }
 
-  findAll() {
-    return `This action returns all orders`;
+  // ADMIN
+  async getAllOrders() {
+    return await this.prisma.order.findMany({
+      include: {
+        user: {
+          select: { email: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
-
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  deleteOrder(id: string) {
+    return this.prisma.order.delete({
+      where: { id },
+    });
   }
 }
