@@ -45,4 +45,5 @@ ENV NODE_ENV=staging
 EXPOSE 4000
 # À la fin de votre Dockerfile
 # On enchaîne : Migration -> Seed -> Start
-CMD npx prisma migrate deploy && npx prisma db seed && node dist/main.js
+
+CMD ["npx prisma migrate deploy", "npx prisma db seed","node", "dist/main.js"]
