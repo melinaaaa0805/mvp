@@ -17,8 +17,11 @@ COPY prisma ./prisma
 RUN npm ci
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
-# Copier le reste du code
-COPY . .
+# Copier uniquement les fichiers nécessaires au build (ne PAS copier start.ts)
+COPY src ./src
+COPY tsconfig*.json ./
+COPY nest-cli.json ./
+COPY prisma ./prisma
 
 # Build NestJS
 RUN npm run build

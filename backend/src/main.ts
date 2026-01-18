@@ -2,14 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 
-async function bootstrap() {
+// ✅ Export bootstrap pour que start.ts puisse l'utiliser
+export async function bootstrap(port?: number) {
   const app = await NestFactory.create(AppModule);
 
+  // CORS
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000', // URL de ton frontend
+    origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
     credentials: true,
   });
 
+  // Swagger
   const config = new DocumentBuilder()
     .setTitle('MVP API')
     .setDescription("Documentation de l'API")
@@ -25,6 +28,13 @@ async function bootstrap() {
     swaggerOptions: { persistAuthorization: true },
   });
 
-  await app.listen(process.env.PORT ?? 4000);
+  // Port : Render fournit process.env.PORT
+  const listenPort = port ?? process.env.PORT ?? 4000;
+  await app.listen(listenPort, '0.0.0.0');
+  console.log(`🚀 Server listening on port ${listenPort}`);
 }
-void bootstrap();
+
+// Dev local
+if (require.main === module) {
+  void bootstrap();
+}
