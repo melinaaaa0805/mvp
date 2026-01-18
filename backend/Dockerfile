@@ -43,11 +43,9 @@ COPY --from=builder /usr/src/app/package*.json ./
 
 ENV NODE_ENV=staging
 EXPOSE 4000
-# Copier le script start.ts
-COPY start.ts ./start.ts
+
 
 # Installer ts-node
 RUN npm install -g ts-node typescript
-
-# CMD final
+COPY scripts/start.ts ./start.ts
 CMD ["ts-node", "start.ts"]
