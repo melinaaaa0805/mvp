@@ -10,15 +10,17 @@ RUN apt-get update && apt-get install -y \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
+# Copier uniquement ce qui est nécessaire pour installer deps
 COPY package*.json ./
 COPY prisma ./prisma
 
 RUN npm ci
-CMD sh -c "npx prisma generate && npx prisma migrate deploy && npx prisma db seed && node dist/main.js"
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
-
+# Copier le reste du code
 COPY . .
 
+# Build NestJS
 RUN npm run build
 
 # =========================
@@ -33,13 +35,14 @@ RUN apt-get update && apt-get install -y \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
+# Copier node_modules, dist et prisma depuis le builder
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/prisma ./prisma
 COPY --from=builder /usr/src/app/package*.json ./
 
 ENV NODE_ENV=production
-
 EXPOSE 4000
 
-CMD ["node", "dist/main.js"]
+# ✅ Commande finale exécutée au runtime
+CMD sh -c "npx prisma generate --schema=./prisma/schema.prisma && npx prisma migrate deploy && npx prisma db seed && node dist/main.js"
