@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-# Copier uniquement ce qui est nécessaire pour installer deps
+# Copier uniquement package.json pour installer deps
 COPY package*.json ./
 COPY prisma ./prisma
 
@@ -20,8 +20,9 @@ RUN npx prisma generate --schema=./prisma/schema.prisma
 # Copier le reste du code
 COPY . .
 
-# Build NestJS
+# Build NestJS et compiler start.ts en JS
 RUN npm run build
+RUN npx tsc scripts/start.ts --outDir dist
 
 # =========================
 # Étape 2 : Runtime
@@ -44,8 +45,5 @@ COPY --from=builder /usr/src/app/package*.json ./
 ENV NODE_ENV=staging
 EXPOSE 4000
 
-
-# Installer ts-node
-RUN npm install -g ts-node typescript
-COPY scripts/start.ts ./start.ts
-CMD ["ts-node", "start.ts"]
+# Lancer le script start.js compilé
+CMD ["node", "dist/start.js"]
