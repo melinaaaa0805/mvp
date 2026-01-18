@@ -41,8 +41,9 @@ COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/prisma ./prisma
 COPY --from=builder /usr/src/app/package*.json ./
 
-ENV NODE_ENV=production
+ENV NODE_ENV=staging
 EXPOSE 4000
 
-# ✅ Commande finale exécutée au runtime
-CMD sh -c "npx prisma generate --schema=./prisma/schema.prisma && npx prisma migrate deploy && npx prisma db seed && node dist/main.js"
+COPY start.sh ./
+RUN chmod +x start.sh
+CMD ["./start.sh"]
