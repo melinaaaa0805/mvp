@@ -44,6 +44,6 @@ COPY --from=builder /usr/src/app/package*.json ./
 ENV NODE_ENV=staging
 EXPOSE 4000
 
-COPY start.sh ./
-RUN chmod +x start.sh
-CMD ["./start.sh"]
+COPY start.js ./
+RUN npm install -g ts-node
+CMD ["ts-node", "start.ts"]
