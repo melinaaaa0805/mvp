@@ -8,14 +8,15 @@ async function main() {
     console.log('🌱 Running Prisma seed...');
     execSync('npx prisma db seed', { stdio: 'inherit' });
 
-    // Lancer le serveur Nest
-    const port = process.env.PORT ?? 4000;
-    console.log(`🔥 Starting NestJS server on port ${port}...`);
+    console.log('🔥 Starting NestJS server...');
 
-    // Importer le main.js compilé par Nest
-    await import('../dist/main'); // si ton main.js est dans dist/, ce script sera compilé en dist/start.js
-  } catch (error) {
-    console.error('❌ Error starting app:', error);
+    // Appel de main.ts compilé en dist
+    // start.ts
+    const mainModule: any = await import('../dist/main.js');
+    const bootstrap = mainModule.bootstrap ?? mainModule.default?.bootstrap;
+    await bootstrap(process.env.PORT ? +process.env.PORT : 4000);
+  } catch (err) {
+    console.error('❌ Error starting the app:', err);
     process.exit(1);
   }
 }
