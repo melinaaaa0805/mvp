@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -17,6 +17,8 @@ export class AuthService {
     }
 
     const passwordValid = await bcrypt.compare(password, user.password);
+
+    //Faire control validitée email ( genre @ )
 
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials');
