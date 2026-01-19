@@ -1,21 +1,55 @@
-# docker-compose.dev.yml
 services:
+  postgres:
+    image: postgres:15
+    container_name: mvp-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: mvp_user
+      POSTGRES_PASSWORD: mvp_password
+      POSTGRES_DB: mvp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U mvp_user -d mvp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
   backend:
     build:
+      target: builder
       context: ./backend
-      target: builder # On reste sur l'étape avec tous les outils
+      dockerfile: Dockerfile
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
-    # On écrase la commande pour le mode dev
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run start:dev"
-
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+      npx prisma generate && 
+      npx prisma migrate deploy && 
+      npx prisma db seed && 
+      npm run start:dev
+      "
+    env_file:
+      - .env.local
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: mvp-frontend-dev
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
     ports:
-      - "3000:3000" # Port classique de dev
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
     command: npm run dev
+volumes:
+  postgres_data:
+  backend_node_modules:

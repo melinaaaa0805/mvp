@@ -1,4 +1,3 @@
-// src/orders/orders.controller.ts
 import {
   Controller,
   Get,
@@ -10,9 +9,12 @@ import {
   UseGuards,
   Post,
 } from '@nestjs/common';
+import { Request } from 'express';
+
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OrdersService } from './orders.service';
 import { UpdateOrderAdminDto } from './dto/update-order-admin.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -23,8 +25,15 @@ export class OrdersController {
   // USER
   // =======================
   @Get()
-  getMyOrders(@Req() req) {
-    return this.ordersService.getOrdersByUser(req.user.userId);
+  getMyOrders(@Req() req: Request) {
+    const userId = (req.user as { userId: string }).userId;
+    return this.ordersService.getOrdersByUser(userId);
+  }
+
+  @Post()
+  createOrder(@Req() req: Request, @Body() body: CreateOrderDto) {
+    const userId = (req.user as { userId: string }).userId;
+    return this.ordersService.createOrder(userId, body);
   }
 
   // =======================
@@ -46,10 +55,5 @@ export class OrdersController {
   @Delete(':id')
   deleteOrderAdmin(@Param('id') id: string) {
     return this.ordersService.deleteOrder(id);
-  }
-
-  @Post()
-  createOrder(@Req() req, @Body() body) {
-    return this.ordersService.createOrder(req.user.userId, body);
   }
 }

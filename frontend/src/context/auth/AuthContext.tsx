@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import api from "../../api/api";
 
 interface User {
@@ -12,8 +12,16 @@ interface AuthState {
   token: string | null;
   loading: boolean;
 }
+interface AuthContextType extends AuthState {
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => void;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+}
 
-export const useAuth = () => {
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [auth, setAuth] = useState<AuthState>({
     user: null,
     token: null,
@@ -37,51 +45,46 @@ export const useAuth = () => {
     }
   }, []);
 
-  // --- NOUVELLE FONCTION LOGIN ---
   const login = async (email: string, password: string) => {
     try {
-      // 1. Appel API vers ton backend NestJS
       const response = await api.post("/auth/login", { email, password });
       const { access_token, sub, emailUserCo, role } = response.data;
-      console.log("User :", response.data.sub);
 
-      // 2. Stockage dans le localStorage
       localStorage.setItem("token", access_token);
       localStorage.setItem("userId", sub);
       localStorage.setItem("email", emailUserCo);
       localStorage.setItem("role", role);
 
-      // 3. Mise à jour de l'état
       setAuth({
         token: access_token,
-        user: { id: sub, email: emailUserCo, role: role },
+        user: { id: sub, email: emailUserCo, role },
         loading: false,
       });
-
       return { success: true };
     } catch (error) {
-      console.error("Erreur de connexion", error);
       return { success: false, error: "Identifiants invalides" };
     }
   };
 
   const logout = () => {
-    localStorage.clear(); // Plus radical et propre
-    setAuth({
-      token: null,
-      user: null,
-      loading: false,
-    });
+    localStorage.clear();
+    setAuth({ token: null, user: null, loading: false });
   };
 
-  const isAuthenticated = !!auth.token;
-  const isAdmin = auth.user?.role === "ADMIN";
-
-  return {
+  const value = {
     ...auth,
-    isAuthenticated,
-    isAdmin,
-    login, // On exporte la fonction login
+    isAuthenticated: !!auth.token,
+    isAdmin: auth.user?.role === "ADMIN",
+    login,
     logout,
   };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Ton hook useAuth devient simplement une consommation du contexte
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth doit être utilisé dans un AuthProvider");
+  return context;
 };

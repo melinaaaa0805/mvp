@@ -3,16 +3,16 @@ import { OrderStatus } from '@prisma/client';
 
 export class OrderEntity {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty({ enum: OrderStatus })
-  status: OrderStatus;
+  status!: OrderStatus;
 
   @ApiProperty()
-  amount: number;
+  amount!: number;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   constructor(partial: Partial<OrderEntity>) {
     Object.assign(this, partial);

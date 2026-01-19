@@ -1,51 +1,31 @@
 version: "3.9"
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: mvp-postgres
-    restart: always
-    environment:
-      POSTGRES_USER: mvp_user
-      POSTGRES_PASSWORD: mvp_password
-      POSTGRES_DB: mvp
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h localhost -U mvp_user -d mvp"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: builder
+      target: runner
     container_name: mvp-backend
-    env_file:
-      - .env.local
     ports:
       - "4000:4000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run start:prod"
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npx prisma db seed &&  npm run start:prod"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   frontend:
     build: ./frontend
     container_name: mvp-frontend
     ports:
       - "3000:80"
-    env_file:
-      - .env.local
     depends_on:
-      - backend
-
-volumes:
-  postgres_data:
+      backend:
+        condition: service_healthy

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "sourceMap": true,
+
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    "skipLibCheck": true,
+    "strict": true,
+    "types": ["node"]
+  }
+}

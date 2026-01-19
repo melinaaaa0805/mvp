@@ -1,6 +1,6 @@
 import DashboardClient from "../components/DahboardClient";
 import DashboardAdmin from "../components/DashboardAdmin";
-import { useAuth } from "../context/auth/useAuth";
+import { useAuth } from "../context/auth/AuthContext";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();

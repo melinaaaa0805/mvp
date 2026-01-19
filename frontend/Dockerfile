@@ -7,6 +7,12 @@ COPY package.json package-lock.json ./
 RUN npm install
 
 COPY . .
+
+# OBLIGATOIRE : Déclarer l'argument avant le run build
+ARG REACT_APP_API_BASE_URL
+# L'injecter dans l'environnement pour que le build React le voie
+ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+
 # Build React en mode production
 RUN npm run build
 

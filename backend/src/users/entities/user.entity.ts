@@ -3,16 +3,16 @@ import { Role } from '@prisma/client';
 
 export class UserEntity {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  email: string;
+  email!: string;
 
   @ApiProperty({ enum: Role })
-  role: Role;
+  role!: Role;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   constructor(partial: Partial<UserEntity>) {
     Object.assign(this, partial);
