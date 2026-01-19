@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getAllOrders, updateOrderAdmin, deleteOrderAdmin } from "../api/admin";
-
+import { getAllOrders, updateOrderAdmin } from "../api/admin";
+import { deleteOrder } from "../api/orders";
 interface Order {
   id: string;
   title: string;
@@ -28,7 +28,7 @@ const DashboardAdmin = () => {
   };
 
   const removeOrder = async (orderId: string) => {
-    await deleteOrderAdmin(orderId);
+    await deleteOrder(orderId);
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
   };
 

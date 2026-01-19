@@ -39,6 +39,11 @@ export class OrdersService {
     return this.prisma.order.update({
       where: { id: orderId },
       data,
+      include: {
+        user: {
+          select: { email: true },
+        },
+      },
     });
   }
 

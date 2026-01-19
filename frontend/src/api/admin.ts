@@ -17,7 +17,3 @@ export const updateOrderAdmin = async (
   const { data } = await api.patch(`/orders/${orderId}`, payload);
   return data;
 };
-
-export const deleteOrderAdmin = async (orderId: string) => {
-  await api.delete(`/orders/${orderId}/admin`);
-};
