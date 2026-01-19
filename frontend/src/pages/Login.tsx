@@ -11,8 +11,10 @@ const Login: React.FC = () => {
 
   const handleLogin = async () => {
     try {
-      auth.login(email, password);
-      navigate("/dashboard");
+      const response = await auth.login(email, password);
+      if (response) {
+        navigate("/dashboard");
+      }
     } catch {
       alert("Échec de la connexion");
     }
