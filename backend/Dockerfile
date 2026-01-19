@@ -42,4 +42,4 @@ ENV NODE_ENV=production
 
 # Render utilise dynamiquement PORT, on ne fixe pas EXPOSE 4000
 # On lance les migrations, le seed, puis le serveur
-CMD npx prisma migrate deploy && npx prisma db seed && node dist/main.js
+CMD ["node", "dist/main.js"]
