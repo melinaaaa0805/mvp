@@ -36,6 +36,8 @@ services:
       "
     env_file:
       - .env.local
+    ports:
+      - "4000:4000"
   frontend:
     build:
       context: ./frontend
@@ -46,10 +48,9 @@ services:
       - /usr/src/app/node_modules
     ports:
       - "3000:3000"
-    depends_on:
-      backend:
-        condition: service_healthy
-    command: npm run dev
+    environment:
+      - REACT_APP_API_BASE_URL=http://localhost:4000
+
 volumes:
   postgres_data:
   backend_node_modules:

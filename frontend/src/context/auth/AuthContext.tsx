@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import api from "../../api/api";
 
 interface User {
@@ -13,7 +19,10 @@ interface AuthState {
   loading: boolean;
 }
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -85,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 // Ton hook useAuth devient simplement une consommation du contexte
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth doit être utilisé dans un AuthProvider");
+  if (!context)
+    throw new Error("useAuth doit être utilisé dans un AuthProvider");
   return context;
 };

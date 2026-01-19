@@ -6,6 +6,7 @@ import {
   updateOrder,
   deleteOrder,
 } from "../api/orders";
+import { useAuth } from "../context/auth/AuthContext";
 
 interface Order {
   id: string;
@@ -19,10 +20,13 @@ const DashboardClient = () => {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState(0);
   const [editId, setEditId] = useState<string | null>(null);
+  const { isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    if (!loading && isAuthenticated) {
+      loadOrders();
+    }
+  }, [loading, isAuthenticated]);
 
   const loadOrders = async () => {
     const data = await getOrders();
@@ -78,7 +82,7 @@ const DashboardClient = () => {
       </div>
 
       <ul>
-        {orders.map((order) => (
+        {orders?.map((order) => (
           <li key={order.id} className="order-item">
             <div>
               <strong>{order.title}</strong>

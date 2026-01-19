@@ -4,9 +4,6 @@ import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 
 // ✅ Export bootstrap pour que start.ts puisse l'utiliser
 export async function bootstrap(port?: number) {
-  console.log('PORT =', process.env.PORT);
-  console.log('DATABASE_URL =', !!process.env.DATABASE_URL);
-
   const app = await NestFactory.create(AppModule);
 
   // CORS
@@ -30,9 +27,6 @@ export async function bootstrap(port?: number) {
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: { persistAuthorization: true },
   });
-
-  console.log('PORT =', process.env.PORT);
-  console.log('DATABASE_URL =', !!process.env.DATABASE_URL);
 
   // Port : Render fournit process.env.PORT
   const listenPort = port ?? process.env.PORT ?? 4000;
