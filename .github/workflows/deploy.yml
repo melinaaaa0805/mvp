@@ -24,10 +24,10 @@ jobs:
         run: |
           if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
             echo "TAG=prod" >> $GITHUB_ENV
-            echo "API_URL=https://mvp-backend-prod-latest.onrender.com" >> $GITHUB_ENV
+            echo "REACT_APP_API_BASE_URL=https://mvp-backend-prod-latest.onrender.com" >> $GITHUB_ENV
           else
             echo "TAG=staging" >> $GITHUB_ENV
-            echo "API_URL=https://mvp-backend-staging-latest.onrender.com" >> $GITHUB_ENV
+            echo "REACT_APP_API_BASE_URL=https://mvp-backend-staging-latest.onrender.com" >> $GITHUB_ENV
           fi
 
       # 3. Build & Push (Back et Front)
