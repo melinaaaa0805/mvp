@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, staging, ci]
+    branches: [main, staging, local]
 
 concurrency:
   group: ci-${{ github.ref }}
