@@ -29,7 +29,6 @@ describe('Login page (demo)', () => {
   });
 
   function renderLogin() {
-    // Login utilise useNavigate => il faut un router.
     return render(
       <MemoryRouter>
         <Login />
@@ -37,7 +36,6 @@ describe('Login page (demo)', () => {
     );
   }
 
-  // Helper compatible user-event v13
   const type = async (element: HTMLElement, text: string) => {
     await userEvent.type(element, text);
   };

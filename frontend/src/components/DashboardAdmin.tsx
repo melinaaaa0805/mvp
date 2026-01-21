@@ -58,7 +58,7 @@ const DashboardAdmin = () =>
     try
     {
       await deleteOrder(orderId);
-      await loadData(); // (optionnel) ✅ recharge aussi après suppression
+      await loadData();
     }
     finally
     {

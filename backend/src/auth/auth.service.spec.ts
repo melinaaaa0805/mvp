@@ -48,7 +48,6 @@ describe('AuthService', () => {
       service.login('invalid-email-format', 'password123'),
     ).rejects.toBeInstanceOf(UnauthorizedException);
 
-    // optionnel : vérifier qu’on ne va même pas taper la BDD
     expect(usersService.findByEmail).not.toHaveBeenCalled();
   });
 
