@@ -2,27 +2,85 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, staging]
+    branches: [main, staging, local]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  tests-back:
+    name: Tests back (unit/int)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  tests-front:
+    name: Tests front (login demo)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        env:
+          CI: true
+        run: npm test
+
   build-and-deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
     environment: staging
+    needs: [tests-back, tests-front]
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 1. Login Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 2. Définition des variables (utilisables dans les steps suivants via $TAG et $API_URL)
       - name: Set Environment Variables
+        shell: bash
         run: |
-          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "TAG=prod" >> $GITHUB_ENV
             echo "REACT_APP_API_BASE_URL=https://mvp-backend-prod-latest.onrender.com" >> $GITHUB_ENV
           else
@@ -30,21 +88,17 @@ jobs:
             echo "REACT_APP_API_BASE_URL=https://mvp-backend-staging-latest.onrender.com" >> $GITHUB_ENV
           fi
 
-      # 3. Build & Push (Back et Front)
       - name: Build and Push Images
         run: |
-          # Backend
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mvp-back:${{ env.TAG }} ./backend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mvp-back:${{ env.TAG }}
 
-          # Frontend
-          docker build --build-arg REACT_APP_API_BASE_URL="${{ env.API_URL }}" \
+          docker build --build-arg REACT_APP_API_BASE_URL="${{ env.REACT_APP_API_BASE_URL }}" \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/mvp-front:${{ env.TAG }} ./frontend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mvp-front:${{ env.TAG }}
 
-      # 4. Deploy Front (Google Cloud Run)
       - name: Authenticate to GCP
-        uses: "google-github-actions/auth@v1"
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: "${{ secrets.GCP_SA_KEY }}"
 
@@ -56,11 +110,11 @@ jobs:
             --platform=managed \
             --allow-unauthenticated
 
-      # 5. Deploy Back (Render via Webhook)
       - name: Deploy Backend to Render
+        shell: bash
         run: |
           if [[ "${{ env.TAG }}" == "prod" ]]; then
-            curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_PROD }}
+            curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_PROD }}"
           else
-            curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}
+            curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}"
           fi
